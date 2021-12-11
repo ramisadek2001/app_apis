@@ -6,18 +6,24 @@ include "connection.php";
 $data_from_ionic = json_decode(file_get_contents("php://input")); 
 $email = $data_from_ionic->email;
 $psw = $data_from_ionic->psw;
-$qrcode = $data_from_ionic->qrcode;
-// $file = $data_from_ionic->file;
 $hashed_password = hash("sha256", $psw);
-$query = "INSERT INTO users(email,psw,qrcode) VALUES (?,?,?)";
+$query = "SELECT * FROM users WHERE email='".$email."'AND psw='".$hashed_password."'limit 1";
 
 $stmt = $cnnx->prepare($query);
-$stmt->bind_param('sss',$email,$hashed_password,$qrcode);
-$stmt->execute();
-
+$stmt ->execute();
+$results = $stmt->get_result();
 $response= [];
-$response[] = "Mabrouk";
 
+
+while ($user = $results->fetch_assoc()) {
+    $response[] = $user;
+}
+if(!empty($response)){
+$response[] = "Mabrouk";
+}else {
+    $response= [];
+$response[] = "failed";
+}
 $result_json = json_encode($response);
 echo $result_json;
 
